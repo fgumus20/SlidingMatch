@@ -17,6 +17,7 @@ public class GridInitalizer : MonoBehaviour
     int gameWidth;
     int gameHeight;
     int moveCount;
+    string Pattern;
     
     Level level;
 
@@ -37,7 +38,7 @@ public class GridInitalizer : MonoBehaviour
         CalcGridSize(gameWidth, gameHeight);
         gridArray = new GridObject[gameWidth, gameHeight];
         InitiliazeCubes();
-        GridManager.instance.SetArrays(gridArray, WidthPositions, HeightPositions, moveCount);
+        GridManager.instance.SetArrays(gridArray, WidthPositions, HeightPositions, moveCount,Pattern);
     }
 
     void CalcGridSize(int gameWidth, int gameHeight)
@@ -58,6 +59,8 @@ public class GridInitalizer : MonoBehaviour
         GameManager.instance.SetGameNum(moveCount,0,0,0);
         WidthPositions = new float[gameWidth];
         HeightPositions = new float[gameHeight];
+        Pattern = level.Pattern;
+       
 
         if (gameHeight % 2 == 0)
             Array.Copy(HeightPositionsEven, ((10 - gameHeight) / 2), HeightPositions, 0, gameHeight);
