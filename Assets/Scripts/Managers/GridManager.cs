@@ -291,6 +291,8 @@ public class GridManager : MonoBehaviour
         // 5) Gap'i eski konuma taþý
         gapPos = from;
 
+        GameManager.instance.DecreaseMoveCount();
+
         matcher.ResolveCascade(); // sadece 3+ çizgileri patlatýr, engellere dokunmaz
 
     }
