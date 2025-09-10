@@ -1,8 +1,9 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class GameUIController : MonoBehaviour
 {
@@ -31,6 +32,8 @@ public class GameUIController : MonoBehaviour
         boxNumText = boxNumTextG.GetComponent<TextMeshPro>();
         vaseNumText = vaseNumTextG.GetComponent<TextMeshPro>();
         stoneNumText = stoneNumTextG.GetComponent<TextMeshPro>();
+        Debug.Log("[UI] movesText is " + (movesText ? "OK" : "NULL"));
+
 
         this.moveCount = moveCount;
         movesText.text = moveCount.ToString();
@@ -45,19 +48,88 @@ public class GameUIController : MonoBehaviour
 
     public void UpdateTexts(int moveCount, int r_boxNum, int r_vaseNum, int r_stoneNum)
     {
-
+        // Metinleri güncelle
         movesText.text = moveCount.ToString();
         boxNumText.text = r_boxNum.ToString();
         vaseNumText.text = r_vaseNum.ToString();
         stoneNumText.text = r_stoneNum.ToString();
+
+        // Check işaretlerini/goal durumunu güncelle
         checkObstacleState(r_boxNum, r_vaseNum, r_stoneNum);
-        //checkGameState();
+        Debug.Log($"[UI] UpdateTexts moves={moveCount} -> {moveCount}, box={r_boxNum}, vase={r_vaseNum}, stone={r_stoneNum}");
+
+        MatchFX.I?.BumpCounter(movesTextG.GetComponent<RectTransform>());
+
+
+        // 🔹 Sadece değer DEĞİŞTİĞİNDE ufak "pıt" (DOTween) animasyonu
+        if (this.moveCount != moveCount)
+        {
+            MatchFX.I?.BumpCounter(movesTextG.GetComponent<RectTransform>());
+            this.moveCount = moveCount;
+        }
+        if (this.boxCount != r_boxNum)
+        {
+            MatchFX.I?.BumpCounter(boxNumTextG.GetComponent<RectTransform>());
+            this.boxCount = r_boxNum;
+        }
+        if (this.vaseCount != r_vaseNum)
+        {
+            MatchFX.I?.BumpCounter(vaseNumTextG.GetComponent<RectTransform>());
+            this.vaseCount = r_vaseNum;
+        }
+        if (this.stoneCount != r_stoneNum)
+        {
+            MatchFX.I?.BumpCounter(stoneNumTextG.GetComponent<RectTransform>());
+            this.stoneCount = r_stoneNum;
+        }
     }
 
-    public void SetMoveCount(int moveCount) { movesText.text = moveCount.ToString(); }
-    public void SetBoxCount(int boxCount) { boxNumText.text = boxCount.ToString(); }
-    public void SetVaseCount(int vaseCount) { vaseNumText.text = vaseCount.ToString(); }
-    public void SetStoneCount(int stoneCount) { stoneNumText.text = stoneCount.ToString(); }
+
+    public void SetMoveCount(int moveCount)
+    {
+        movesText.text = moveCount.ToString();
+        if (this.moveCount != moveCount)
+        {
+            MatchFX.I?.BumpCounter(movesTextG.GetComponent<RectTransform>());
+            this.moveCount = moveCount;
+        }
+        // Hedeflerle ilişkisi yok; checkObstacleState gerekmez
+    }
+
+    public void SetBoxCount(int boxCount)
+    {
+        boxNumText.text = boxCount.ToString();
+        if (this.boxCount != boxCount)
+        {
+            MatchFX.I?.BumpCounter(boxNumTextG.GetComponent<RectTransform>());
+            this.boxCount = boxCount;
+        }
+        // diğer sayaçlarla birlikte tikleri güncelle
+        checkObstacleState(this.boxCount, this.vaseCount, this.stoneCount);
+    }
+
+    public void SetVaseCount(int vaseCount)
+    {
+        vaseNumText.text = vaseCount.ToString();
+        if (this.vaseCount != vaseCount)
+        {
+            MatchFX.I?.BumpCounter(vaseNumTextG.GetComponent<RectTransform>());
+            this.vaseCount = vaseCount;
+        }
+        checkObstacleState(this.boxCount, this.vaseCount, this.stoneCount);
+    }
+
+    public void SetStoneCount(int stoneCount)
+    {
+        stoneNumText.text = stoneCount.ToString();
+        if (this.stoneCount != stoneCount)
+        {
+            MatchFX.I?.BumpCounter(stoneNumTextG.GetComponent<RectTransform>());
+            this.stoneCount = stoneCount;
+        }
+        checkObstacleState(this.boxCount, this.vaseCount, this.stoneCount);
+    }
+
     public void checkObstacleState(int boxNum, int vaseNum, int stoneNum)
     {
         if (boxNum == 0)

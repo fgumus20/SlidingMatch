@@ -4,16 +4,18 @@ using UnityEngine;
 public class LineMatcher : MatcherBase, IMatcher
 {
     public LineMatcher(
-        GridObject[,] grid,
-        int gridWidth, int gridHeight,
+        GridObject[,] grid, int gridWidth, int gridHeight,
         float[] widthPositions, float[] heightPositions,
         System.Func<ObjectType> randomColor,
         System.Func<ObjectType, GameObject> cubePoolGetter,
-        System.Func<Vector2Int> gapPosGetter)
-        : base(grid, gridWidth, gridHeight, widthPositions, heightPositions, randomColor, cubePoolGetter, gapPosGetter)
+        System.Func<Vector2Int> gapPosGetter,
+        System.Action onFallStart,
+        System.Action onFallDone)
+        : base(grid, gridWidth, gridHeight, widthPositions, heightPositions,
+               randomColor, cubePoolGetter, gapPosGetter, onFallStart, onFallDone)
     { }
 
-    protected override bool ResolveOnce()
+    public override bool ResolveOnce()
     {
         var toClear = FindLineMatches3Plus();
         if (toClear.Count == 0) return false;
@@ -27,8 +29,7 @@ public class LineMatcher : MatcherBase, IMatcher
     private HashSet<Vector2Int> FindLineMatches3Plus()
     {
         var res = new HashSet<Vector2Int>();
-
-        // Yatay
+        // yatay
         for (int y = 0; y < H; y++)
         {
             int x = 0;
@@ -41,13 +42,11 @@ public class LineMatcher : MatcherBase, IMatcher
 
                 int run = 1, k = x + 1;
                 while (k < W && grid[k, y] is Cube b && b.GetType1() == color) { run++; k++; }
-                if (run >= 3)
-                    for (int m = 0; m < run; m++) res.Add(new Vector2Int(x + m, y));
+                if (run >= 3) for (int m = 0; m < run; m++) res.Add(new Vector2Int(x + m, y));
                 x = k;
             }
         }
-
-        // Dikey
+        // dikey
         for (int x = 0; x < W; x++)
         {
             int y = 0;
@@ -60,8 +59,7 @@ public class LineMatcher : MatcherBase, IMatcher
 
                 int run = 1, k = y + 1;
                 while (k < H && grid[x, k] is Cube b && b.GetType1() == color) { run++; k++; }
-                if (run >= 3)
-                    for (int m = 0; m < run; m++) res.Add(new Vector2Int(x, y + m));
+                if (run >= 3) for (int m = 0; m < run; m++) res.Add(new Vector2Int(x, y + m));
                 y = k;
             }
         }

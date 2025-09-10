@@ -1,3 +1,4 @@
+Ôªøusing System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,26 +9,29 @@ public abstract class MatcherBase : IMatcher
     protected readonly float[] widthPos;
     protected readonly float[] heightPos;
 
-    protected readonly System.Func<ObjectType> rngColor;
-    protected readonly System.Func<ObjectType, GameObject> getCubeFromPool;
-    protected readonly System.Func<Vector2Int> getGapPos;
+    protected readonly Func<ObjectType> rngColor;
+    protected readonly Func<ObjectType, GameObject> getCubeFromPool;
+    protected readonly Func<Vector2Int> getGapPos;
+
+    // üîπ d√º≈ü√º≈ü sayacƒ± i√ßin GridManager‚Äôdan gelen kancalar
+    protected readonly Action onFallStart;
+    protected readonly Action onFallDone;
 
     protected MatcherBase(
         GridObject[,] grid,
         int gridWidth, int gridHeight,
         float[] widthPositions, float[] heightPositions,
-        System.Func<ObjectType> randomColor,
-        System.Func<ObjectType, GameObject> cubePoolGetter,
-        System.Func<Vector2Int> gapPosGetter)
+        Func<ObjectType> randomColor,
+        Func<ObjectType, GameObject> cubePoolGetter,
+        Func<Vector2Int> gapPosGetter,
+        Action onFallStart,
+        Action onFallDone)
     {
         this.grid = grid;
-        W = gridWidth;
-        H = gridHeight;
-        widthPos = widthPositions;
-        heightPos = heightPositions;
-        rngColor = randomColor;
-        getCubeFromPool = cubePoolGetter;
-        getGapPos = gapPosGetter;
+        W = gridWidth; H = gridHeight;
+        widthPos = widthPositions; heightPos = heightPositions;
+        rngColor = randomColor; getCubeFromPool = cubePoolGetter; getGapPos = gapPosGetter;
+        this.onFallStart = onFallStart; this.onFallDone = onFallDone;
     }
 
     public void ResolveCascade(int maxLoops = 20)
@@ -39,10 +43,11 @@ public abstract class MatcherBase : IMatcher
         }
     }
 
-    // Her alt s˝n˝f kendi e˛le˛mesini bulup temizlemeyi Áa˝racak
-    protected abstract bool ResolveOnce();
+    // üîπ alt sƒ±nƒ±f sadece ‚Äúhangi h√ºcreler temizlenecek?‚Äùi verir
+    public abstract bool ResolveOnce();
 
-    // --- Ortak yard˝mc˝lar ---
+    // --------- ORTAK YARDIMCILAR ---------
+
     protected void ClearCells(HashSet<Vector2Int> cells)
     {
         foreach (var p in cells)
@@ -74,17 +79,28 @@ public abstract class MatcherBase : IMatcher
                         grid[x, targetY] = c;
                         grid[x, y] = null;
                         c.SetXandY(x, targetY);
-                        c.GetFall().StartFallingToHeight(heightPos[targetY]);
+
+                        var fall = c.GetFall();
+                        if (fall != null)
+                        {
+                            onFallStart?.Invoke();
+                            fall.StartFallingToHeight(heightPos[targetY], onFallDone);
+                        }
+                        else
+                        {
+                            var lp = c.transform.localPosition;
+                            c.transform.localPosition = new Vector3(lp.x, heightPos[targetY], lp.z);
+                        }
                     }
                     writeY = targetY + 1;
                 }
                 else if (grid[x, y] != null)
                 {
-                    // Engel gˆrd¸ysen yazmay˝ onun ALTINA al
+                    // engel varsa onun altƒ±ndan devam
                     writeY = y + 1;
                 }
             }
-            if (x == gap.x) grid[gap.x, gap.y] = null; // g¸vence
+            if (x == gap.x) grid[gap.x, gap.y] = null;
         }
     }
 
@@ -100,12 +116,30 @@ public abstract class MatcherBase : IMatcher
                 {
                     var color = rngColor();
                     var go = getCubeFromPool(color);
+                    if (!go) continue;
+
                     go.SetActive(true);
                     var cube = go.GetComponent<Cube>();
-                    var start = new Vector3(widthPos[x], 700f, -H - 2);
-                    cube.SetProperties(start, color, x, y);
-                    grid[x, y] = cube;
-                    cube.GetFall().StartFallingToHeight(heightPos[y]);
+                    float z = -y - 2f;
+
+                    var fall = cube.GetFall();
+                    if (fall != null)
+                    {
+                        // Yukarƒ±dan doƒüurup d√º≈ü√ºr
+                        var start = new Vector3(widthPos[x], 700f, z);
+                        cube.SetProperties(start, color, x, y);
+                        grid[x, y] = cube;
+
+                        onFallStart?.Invoke();
+                        fall.StartFallingToHeight(heightPos[y], onFallDone);
+                    }
+                    else
+                    {
+                        // Animasyon yoksa direkt yerine koy
+                        var pos = new Vector3(widthPos[x], heightPos[y], z);
+                        cube.SetProperties(pos, color, x, y);
+                        grid[x, y] = cube;
+                    }
                 }
             }
         }

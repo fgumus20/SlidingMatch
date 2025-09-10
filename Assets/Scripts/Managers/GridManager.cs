@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
@@ -19,6 +19,7 @@ public class GridManager : MonoBehaviour
     int gridWidth, gridHeight;
 
     public Vector2Int gapPos;
+    private bool isResolving;
 
     void Awake()
     {
@@ -41,26 +42,22 @@ public class GridManager : MonoBehaviour
         this.gridHeight = heights.Length;
         this.pattern = patern;
 
-        matcher = new LineMatcher(
-        gridArray,
-        gridWidth, gridHeight,
-        WidthPositions, HeightPositions,
-        () => (ObjectType)UnityEngine.Random.Range(0, 4),
-        (ObjectType t) => CubesPool.instance.GetNextInactiveCube(t),
-        () => gapPos // level'dan gelen "em" koordinat� burada sakl�
-    );
-
+    
         System.Func<ObjectType> rng = () => (ObjectType)UnityEngine.Random.Range(0, 4);
-        System.Func<ObjectType, GameObject> pool = (ObjectType t) => CubesPool.instance.GetNextInactiveCube(t);
+        System.Func<ObjectType, GameObject> poolGetter = (t) => CubesPool.instance.GetNextInactiveCube(t);
         System.Func<Vector2Int> gapGetter = () => gapPos;
 
         if (!string.IsNullOrEmpty(pattern) && pattern.ToLowerInvariant().Contains("square"))
         {
-            matcher = new SquareMatcher(gridArray, gridWidth, gridHeight, WidthPositions, HeightPositions, rng, pool, gapGetter);
+            matcher = new SquareMatcher(gridArray, gridWidth, gridHeight,
+                WidthPositions, HeightPositions, rng, poolGetter, gapGetter,
+                OnFallStart, OnFallDone);
         }
         else
         {
-            matcher = new LineMatcher(gridArray, gridWidth, gridHeight, WidthPositions, HeightPositions, rng, pool, gapGetter);
+            matcher = new LineMatcher(gridArray, gridWidth, gridHeight,
+                WidthPositions, HeightPositions, rng, poolGetter, gapGetter,
+                OnFallStart, OnFallDone);
         }
 
         //FindAllNeighbours();
@@ -271,33 +268,87 @@ public class GridManager : MonoBehaviour
 
     public void SlideIntoGap(Vector2Int from)
     {
-        // 1) G�venlik
+        // 1) Güvenlik
         var cube = gridArray[from.x, from.y] as Cube;
         if (cube == null) return;
         if (!IsAdjacentToGap(from)) return;
 
-        // 2) K�p� bo�lu�a ta�� (mant�ksal)
+        // 2) Küpü boşluğa taşı (mantıksal)
         gridArray[gapPos.x, gapPos.y] = cube;
         cube.SetXandY(gapPos.x, gapPos.y);
 
-        // 3) G�rsel pozisyonu g�ncelle (basit, anl�k)
+        // 3) Görsel pozisyonu güncelle (basit, anlık)
         var targetLocal = GridToLocal(gapPos);
-        // �stersen burada Lerp/Coroutine ile yumu�atabilirsin.
+        // İstersen burada Lerp/Coroutine ile yumuşatabilirsin.
         cube.transform.localPosition = targetLocal;
 
-        // 4) Eski h�creyi bo�alt
+        // 4) Eski hücreyi boşalt
         gridArray[from.x, from.y] = null;
 
-        // 5) Gap'i eski konuma ta��
+        // 5) Gap'i eski konuma taşı
         gapPos = from;
 
         GameManager.instance.DecreaseMoveCount();
 
-        matcher.ResolveCascade(); // sadece 3+ �izgileri patlat�r, engellere dokunmaz
+        TryResolveStep(); // sadece 3+ çizgileri patlatır, engellere dokunmaz
 
     }
+    private bool AnyFalling()
+    {
+        for (int x = 0; x < gridWidth; x++)
+            for (int y = 0; y < gridHeight; y++)
+                if (gridArray[x, y] is Cube c && c.GetFall() != null && c.GetFall().IsFalling)
+                    return true;
+        return false;
+    }
 
+    private System.Collections.IEnumerator ResolveRoutine()
+    {
+        if (isResolving) yield break;
+        isResolving = true;
+
+        // ilk yerleşme bekle (kaydırılan küp düşüyorsa)
+        while (AnyFalling()) yield return null;
+
+        // kademeli çözümleme: her turdan sonra tekrar yerleşmesini bekle
+        while (matcher.ResolveOnce())
+        {
+            while (AnyFalling()) yield return null;
+        }
+
+        isResolving = false;
+    }
+
+    private int fallingCount = 0;
+    private bool resolving = false;
+
+    // kancalar
+    private void OnFallStart() { fallingCount++; }
+    private void OnFallDone() { fallingCount--; if (fallingCount <= 0) TryResolveStep(); }
+
+    // tek adım tetikleyici
+    private void TryResolveStep()
+    {
+        if (resolving) return;
+        if (fallingCount > 0) return;
+        StartCoroutine(ResolveStep());
+    }
+
+    private System.Collections.IEnumerator ResolveStep()
+    {
+        resolving = true;
+        yield return null; // son frame hizalaması için
+
+        bool didWork = matcher.ResolveOnce();
+        resolving = false;
+
+        if (didWork)
+        {
+            // Bu adım yeni düşüş başlattıysa OnFallDone tetikleyecek; başlamadıysa kendimiz devam ederiz
+            if (fallingCount <= 0) TryResolveStep();
+        }
+    }
 }
 
-        
+
 
