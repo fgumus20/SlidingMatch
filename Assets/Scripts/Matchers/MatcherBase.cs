@@ -125,6 +125,7 @@ public abstract class MatcherBase : IMatcher
                 obs.TakeDamage();
                 if (obs.GetHealth() <= 0)
                 {
+                    GameManager.instance.DecreaseObstacleCount(obs.GetType1());
                     grid[nx, ny] = null;
                     obs.gameObject.SetActive(false);
                 }
