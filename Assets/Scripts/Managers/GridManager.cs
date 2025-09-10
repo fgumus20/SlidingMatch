@@ -14,7 +14,7 @@ public class GridManager : MonoBehaviour
     public GridObject[,] gridArray;
     int moveCount;
     string pattern;
-    private LineMatcher matcher;
+    private IMatcher matcher;
 
     int gridWidth, gridHeight;
 
@@ -49,6 +49,19 @@ public class GridManager : MonoBehaviour
         (ObjectType t) => CubesPool.instance.GetNextInactiveCube(t),
         () => gapPos // level'dan gelen "em" koordinatý burada saklý
     );
+
+        System.Func<ObjectType> rng = () => (ObjectType)UnityEngine.Random.Range(0, 4);
+        System.Func<ObjectType, GameObject> pool = (ObjectType t) => CubesPool.instance.GetNextInactiveCube(t);
+        System.Func<Vector2Int> gapGetter = () => gapPos;
+
+        if (!string.IsNullOrEmpty(pattern) && pattern.ToLowerInvariant().Contains("square"))
+        {
+            matcher = new SquareMatcher(gridArray, gridWidth, gridHeight, WidthPositions, HeightPositions, rng, pool, gapGetter);
+        }
+        else
+        {
+            matcher = new LineMatcher(gridArray, gridWidth, gridHeight, WidthPositions, HeightPositions, rng, pool, gapGetter);
+        }
 
         //FindAllNeighbours();
     }

@@ -3,7 +3,7 @@
        "grid_width": 6,
        "grid_height": 6,
        "move_count": 20,
-       "pattern": "L",
+       "pattern": "square",
          "grid": [
     "b","g","r","y","bo","g",
     "r","b","y","g","r","y",
