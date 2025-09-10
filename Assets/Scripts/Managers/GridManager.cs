@@ -13,6 +13,7 @@ public class GridManager : MonoBehaviour
     public float[] WidthPositions;
     public GridObject[,] gridArray;
     int moveCount;
+    string pattern;
     private LineMatcher matcher;
 
     int gridWidth, gridHeight;
@@ -30,7 +31,7 @@ public class GridManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    public void SetArrays(GridObject[,] gridArray,float[] widths, float[] heights, int moveCount)
+    public void SetArrays(GridObject[,] gridArray,float[] widths, float[] heights, int moveCount,string patern)
     {
         this.gridArray = gridArray;
         this.WidthPositions = widths;
@@ -38,6 +39,7 @@ public class GridManager : MonoBehaviour
         this.moveCount = moveCount;
         this.gridWidth = widths.Length;
         this.gridHeight = heights.Length;
+        this.pattern = patern;
 
         matcher = new LineMatcher(
         gridArray,
