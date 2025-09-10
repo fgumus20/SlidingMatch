@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DG.Tweening;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -50,16 +51,33 @@ public abstract class MatcherBase : IMatcher
 
     protected void ClearCells(HashSet<Vector2Int> cells)
     {
+        // 🔹 1) Önce transform'ları topla (SetFalse etmeden!)
+        var justCleared = new List<Transform>();
+
         foreach (var p in cells)
         {
             if (grid[p.x, p.y] is Cube c)
             {
-                c.SetFalse();
+                justCleared.Add(c.transform);   // FX için sakla
+            }
+        }
+
+        // 🔹 2) Sonra gerçekten temizle
+        foreach (var p in cells)
+        {
+            if (grid[p.x, p.y] is Cube c)
+            {
+                c.SetFalse();                    // burada inactive olursa transform’u hâlâ bizde
                 grid[p.x, p.y] = null;
                 ApplyDamageToNeighbours(p.x, p.y);
             }
         }
+
+        // 🔹 3) FX — SetFalse’tan SONRA da güvenle çalışır, çünkü elimizde referans var
+        MatchFX.I?.PulseTiles(justCleared);
+        MatchFX.I?.NudgeBoard(justCleared.Count >= 6 ? 14f : 10f);
     }
+
 
     protected void CollapseColumns()
     {
@@ -107,43 +125,77 @@ public abstract class MatcherBase : IMatcher
     protected void RefillExceptGap()
     {
         var gap = getGapPos();
+
         for (int x = 0; x < W; x++)
         {
             for (int y = 0; y < H; y++)
             {
                 if (x == gap.x && y == gap.y) continue;
-                if (grid[x, y] == null)
+                if (grid[x, y] != null) continue;
+
+                // 1) Renk ve obje
+                var color = rngColor();
+                var go = getCubeFromPool != null ? getCubeFromPool(color) : null;
+                if (go == null)
                 {
-                    var color = rngColor();
-                    var go = getCubeFromPool(color);
-                    if (!go) continue;
+                    Debug.LogWarning("[Refill] Pool'dan obje alınamadı, hücre atlandı.");
+                    continue;
+                }
 
-                    go.SetActive(true);
-                    var cube = go.GetComponent<Cube>();
-                    float z = -y - 2f;
+                // 2) Parent ve ölçek güvenliği
+                // (cubesParent kullanıyorsan: go.transform.SetParent(cubesParent, false);)
+                // Eğer özel parent'ın yoksa worldPositionStays=false ile mevcut parent'ı koru
+                go.transform.SetParent(go.transform.parent, false);
 
-                    var fall = cube.GetFall();
-                    if (fall != null)
-                    {
-                        // Yukarıdan doğurup düşür
-                        var start = new Vector3(widthPos[x], 700f, z);
-                        cube.SetProperties(start, color, x, y);
-                        grid[x, y] = cube;
+                // Prefab'ın varsayılan ölçeği (Cube.DefaultScale tanımlıysa onu kullan)
+                Vector3 defaultScale = (Cube.DefaultScale == Vector3.zero) ? Vector3.one : Cube.DefaultScale;
+                go.transform.localScale = defaultScale;
 
-                        onFallStart?.Invoke();
-                        fall.StartFallingToHeight(heightPos[y], onFallDone);
-                    }
-                    else
-                    {
-                        // Animasyon yoksa direkt yerine koy
-                        var pos = new Vector3(widthPos[x], heightPos[y], z);
-                        cube.SetProperties(pos, color, x, y);
-                        grid[x, y] = cube;
-                    }
+                go.SetActive(true);
+
+                var cube = go.GetComponent<Cube>();
+                if (cube == null)
+                {
+                    Debug.LogError("[Refill] GameObject'te Cube component yok!");
+                    continue;
+                }
+
+                float z = -y - 2f;
+
+                // 3) Düşüş (varsa) / Doğrudan yerleştirme
+                var fall = cube.GetFall();
+                if (fall != null)
+                {
+                    // Yukarıdan başlat → düşür
+                    var start = new Vector3(widthPos[x], 700f, z);
+                    cube.SetProperties(start, color, x, y);
+                    grid[x, y] = cube;
+                    
+
+                    // Spawn pop (ölçeği önce biraz küçült, sonra eski haline)
+                    go.transform.localScale = defaultScale * 0.9f;
+                    go.transform.DOScale(defaultScale, 0.12f).SetEase(Ease.OutQuad).SetUpdate(true);
+                    cube.ResetVisual();
+                    onFallStart?.Invoke();
+                    fall.StartFallingToHeight(heightPos[y], onFallDone);
+                }
+                else
+                {
+                    // Animasyon yoksa doğrudan final pozisyona
+                    var pos = new Vector3(widthPos[x], heightPos[y], z);
+                    cube.SetProperties(pos, color, x, y);
+                    grid[x, y] = cube;
+                    
+                    // Spawn pop
+                    go.transform.localScale = defaultScale * 0.9f;
+                    go.transform.DOScale(defaultScale, 0.12f).SetEase(Ease.OutQuad).SetUpdate(true);
+                    cube.ResetVisual();
+
                 }
             }
         }
     }
+
 
     protected void ApplyDamageToNeighbours(int x, int y)
     {

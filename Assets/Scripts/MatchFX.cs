@@ -28,18 +28,30 @@ public class MatchFX : MonoBehaviour
     }
 
     // --- TILE FX ---
+    // MatchFX.cs içinde
     public void PulseTiles(IEnumerable<Transform> tiles)
     {
         foreach (var t in tiles)
         {
             if (!t) continue;
-            t.DOKill();
+
+            // Varsayýlan hedef: gelen transform
+            Transform target = t;
+
+            // Eðer bu transform bir Cube içindeyse, child'ý (cubePosition) hedefle
+            var cube = t.GetComponentInParent<Cube>();
+            if (cube && cube.cubePosition) target = cube.cubePosition;
+
+            target.DOKill();
+            // Child hep 1.0 tabanýnda; mutlak 1.12 -> 1.0 arasýnda güvenli
+            float baseScale = Cube.BASE_SCALE;
             DOTween.Sequence()
-                .Append(t.DOScale(1.12f, 0.08f))
-                .Append(t.DOScale(1f, 0.12f))
+                .Append(target.DOScale(Vector3.one * baseScale * 1.12f, 0.08f))
+                .Append(target.DOScale(Vector3.one * baseScale, 0.12f))
                 .Play();
         }
     }
+
 
     // --- BOARD / CAMERA ---
     public void NudgeBoard(float strength = 10f)

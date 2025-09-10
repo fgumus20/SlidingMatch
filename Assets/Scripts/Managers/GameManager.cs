@@ -23,14 +23,14 @@ public class GameManager : MonoBehaviour
     public int GetBoxCount() {  return boxCount; }
     public int GetVaseCount() {  return vaseCount; }
     public int GetStoneCount() { return stoneCount; }
-    public void SetGameNum(int moveCount, int boxCount, int vaseCount, int stoneCount) 
+    public void SetGameNum(int moveCount, int boxCount, int vaseCount, int stoneCount,string pattern) 
     { 
         this.moveCount = moveCount;
         this.boxCount = boxCount;
         this.vaseCount = vaseCount;
         this.stoneCount = stoneCount;
 
-        GameUIController.instance.Initialize(moveCount, boxCount, vaseCount, stoneCount);
+        GameUIController.instance.Initialize(moveCount, boxCount, vaseCount, stoneCount,pattern);
         GameUIController.instance.checkObstacleState(boxCount, GetVaseCount(), GetStoneCount());
     }
     public void SetBoxCount(int boxCount)

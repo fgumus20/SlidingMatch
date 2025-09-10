@@ -13,6 +13,7 @@ public class GameUIController : MonoBehaviour
     private int moveCount, boxCount, vaseCount, stoneCount;
     public GameObject boxCheck, stoneCheck, vaseCheck;
     public GameObject popup_ui, winUI;
+    public GameObject x2Cubes, lineCubes;
 
     void Awake()
     {
@@ -26,7 +27,7 @@ public class GameUIController : MonoBehaviour
         }
     }
 
-    public void Initialize(int moveCount, int boxCount, int vaseCount, int stoneCount)
+    public void Initialize(int moveCount, int boxCount, int vaseCount, int stoneCount,string pattern)
     {
         movesText = movesTextG.GetComponent<TextMeshPro>();
         boxNumText = boxNumTextG.GetComponent<TextMeshPro>();
@@ -34,7 +35,7 @@ public class GameUIController : MonoBehaviour
         stoneNumText = stoneNumTextG.GetComponent<TextMeshPro>();
         Debug.Log("[UI] movesText is " + (movesText ? "OK" : "NULL"));
 
-
+        SetPatternUI(pattern);
         this.moveCount = moveCount;
         movesText.text = moveCount.ToString();
         this.boxCount = boxCount;
@@ -166,5 +167,20 @@ public class GameUIController : MonoBehaviour
         yield return new WaitForSeconds(5);
         winUI.SetActive(false);
         SceneManager.LoadScene(0);
+    }
+
+    private void SetPatternUI(string pattern)
+    {
+        Debug.Log(pattern);
+        if(pattern.Equals("square"))
+        {
+            x2Cubes.SetActive(true);
+            lineCubes.SetActive(false);
+        }
+        else
+        {
+            x2Cubes.SetActive(false);
+            lineCubes.SetActive(true);
+        }
     }
 }

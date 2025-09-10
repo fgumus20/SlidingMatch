@@ -56,7 +56,8 @@ public class GridInitalizer : MonoBehaviour
         gameHeight = level.GridHeight;
         moveCount = level.MoveCount;
         GridJSON = level.Grid;
-        GameManager.instance.SetGameNum(moveCount,0,0,0);
+        Pattern = level.Pattern;
+        GameManager.instance.SetGameNum(moveCount,0,0,0,Pattern);
         WidthPositions = new float[gameWidth];
         HeightPositions = new float[gameHeight];
         Pattern = level.Pattern;
@@ -99,6 +100,7 @@ public class GridInitalizer : MonoBehaviour
                     GameObject cubeObj = CubesPool.instance.GetNextInactiveCube(type);
                     cubeObj.SetActive(true);
                     Cube cube = cubeObj.GetComponent<Cube>();
+                    cube.ResetVisual();
 
                     Vector3 position = new Vector3(WidthPositions[w], HeightPositions[h], -h - 2);
                     cube.SetProperties(position, type, w, h);
