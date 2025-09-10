@@ -23,6 +23,7 @@ public class LevelManager : MonoBehaviour
     public static LevelManager GetLevelManager() { return instance; }
     public int GetCurrentLevel() {return  PlayerPrefs.GetInt("CurrentLevel", 1); }
     public void SetCurrentLevel(int level) { currentLevel = level; }
+    //public string GetPattern() { return currentPattern; }
 
     public Level LoadLevel(int levelnum)
     {
@@ -47,6 +48,7 @@ public class LevelManager : MonoBehaviour
             data.grid_width,
             data.grid_height,
             data.move_count,
+            data.pattern,
             new List<string>(data.grid)
         );
     }
@@ -63,6 +65,7 @@ public class LevelManager : MonoBehaviour
         public int grid_width;
         public int grid_height;
         public int move_count;
+        public string pattern;
         public string[] grid;
     }
 }

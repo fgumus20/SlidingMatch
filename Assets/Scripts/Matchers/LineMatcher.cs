@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LineMatcher
+public class LineMatcher: IMatcher
 {
     private GridObject[,] grid;
     private readonly int W, H;
