@@ -7,8 +7,8 @@ public class MatchFX : MonoBehaviour
     public static MatchFX I;
 
     [Header("Scene Refs")]
-    public Transform boardRoot;   // Grid parent ya da GridManager objesi
-    public Camera mainCam;        // (opsiyonel) küçük shake
+    public Transform boardRoot;
+    public Camera mainCam;
 
     [Header("UI Refs (opsiyonel)")]
     public RectTransform movesText;
@@ -26,24 +26,18 @@ public class MatchFX : MonoBehaviour
         }
         Debug.Log("[MatchFX] Ready. boardRoot=" + (boardRoot ? boardRoot.name : "NULL"));
     }
-
-    // --- TILE FX ---
-    // MatchFX.cs içinde
     public void PulseTiles(IEnumerable<Transform> tiles)
     {
         foreach (var t in tiles)
         {
             if (!t) continue;
 
-            // Varsayýlan hedef: gelen transform
             Transform target = t;
 
-            // Eðer bu transform bir Cube içindeyse, child'ý (cubePosition) hedefle
             var cube = t.GetComponentInParent<Cube>();
             if (cube && cube.cubePosition) target = cube.cubePosition;
 
             target.DOKill();
-            // Child hep 1.0 tabanýnda; mutlak 1.12 -> 1.0 arasýnda güvenli
             float baseScale = Cube.BASE_SCALE;
             DOTween.Sequence()
                 .Append(target.DOScale(Vector3.one * baseScale * 1.12f, 0.08f))

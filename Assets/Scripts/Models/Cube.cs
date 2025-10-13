@@ -28,11 +28,9 @@ public class Cube : MonoBehaviour, GridObject
 
     public void ResetVisual()
     {
-        // Eski tween/efekt kalýntýlarýný temizle
         transform.DOKill(true);
         if (cubePosition) cubePosition.DOKill(true);
 
-        // KÖK: 52x52x52 (dünya/board ölçeði)
         transform.localScale = Vector3.one * BASE_SCALE;
         transform.localRotation = Quaternion.identity;
 

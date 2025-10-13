@@ -49,20 +49,17 @@ public class GameUIController : MonoBehaviour
 
     public void UpdateTexts(int moveCount, int r_boxNum, int r_vaseNum, int r_stoneNum)
     {
-        // Metinleri güncelle
         movesText.text = moveCount.ToString();
         boxNumText.text = r_boxNum.ToString();
         vaseNumText.text = r_vaseNum.ToString();
         stoneNumText.text = r_stoneNum.ToString();
 
-        // Check işaretlerini/goal durumunu güncelle
         checkObstacleState(r_boxNum, r_vaseNum, r_stoneNum);
         Debug.Log($"[UI] UpdateTexts moves={moveCount} -> {moveCount}, box={r_boxNum}, vase={r_vaseNum}, stone={r_stoneNum}");
 
         MatchFX.I?.BumpCounter(movesTextG.GetComponent<RectTransform>());
 
 
-        // 🔹 Sadece değer DEĞİŞTİĞİNDE ufak "pıt" (DOTween) animasyonu
         if (this.moveCount != moveCount)
         {
             MatchFX.I?.BumpCounter(movesTextG.GetComponent<RectTransform>());
@@ -94,7 +91,6 @@ public class GameUIController : MonoBehaviour
             MatchFX.I?.BumpCounter(movesTextG.GetComponent<RectTransform>());
             this.moveCount = moveCount;
         }
-        // Hedeflerle ilişkisi yok; checkObstacleState gerekmez
     }
 
     public void SetBoxCount(int boxCount)
@@ -105,7 +101,6 @@ public class GameUIController : MonoBehaviour
             MatchFX.I?.BumpCounter(boxNumTextG.GetComponent<RectTransform>());
             this.boxCount = boxCount;
         }
-        // diğer sayaçlarla birlikte tikleri güncelle
         checkObstacleState(this.boxCount, this.vaseCount, this.stoneCount);
     }
 

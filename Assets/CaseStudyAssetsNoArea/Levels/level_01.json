@@ -1,15 +1,17 @@
 {
-       "level_number": 1,
-       "grid_width": 6,
-       "grid_height": 6,
-       "move_count": 200,
-       "pattern": "square",
-         "grid": [
-    "b","g","r","y","bo","g",
-    "r","b","y","g","r","y",
-    "g","b","b","y","em","b",
-    "y","g","r","b","g","r",
-    "b","v","y","bo","y","g",
-    "g","v","b","r","b","y"
-  ]
+    "level_number": 1,
+    "grid_width": 9,
+    "grid_height": 10,
+    "move_count": 50,
+    "pattern": "square",
+    "grid": [ "rand", "rand", "rand", "rand", "rand", "rand", "rand", "rand", "rand",
+              "rand", "rand", "rand", "rand", "rand", "rand", "rand", "rand", "rand", 
+              "bo", "bo", "bo", "bo", "bo", "bo", "bo", "bo", "bo",
+              "b", "b", "y", "y", "g", "g", "r", "r", "b",
+              "b", "em","b", "y", "y", "g", "g", "r", "r", 
+              "bo", "bo", "bo", "bo","bo", "bo", "bo", "bo", "y",
+              "rand", "rand", "rand", "rand", "y", "rand", "rand", "rand", "rand",
+              "rand", "rand", "rand","rand", "rand", "rand", "rand", "rand", "rand",
+              "rand","rand","rand", "rand", "rand", "rand", "rand", "rand", "rand", 
+              "rand","rand", "rand", "rand", "rand", "rand", "rand", "rand", "rand" ]
 }

@@ -14,7 +14,6 @@ public abstract class MatcherBase : IMatcher
     protected readonly Func<ObjectType, GameObject> getCubeFromPool;
     protected readonly Func<Vector2Int> getGapPos;
 
-    // 🔹 düşüş sayacı için GridManager’dan gelen kancalar
     protected readonly Action onFallStart;
     protected readonly Action onFallDone;
 
@@ -44,38 +43,35 @@ public abstract class MatcherBase : IMatcher
         }
     }
 
-    // 🔹 alt sınıf sadece “hangi hücreler temizlenecek?”i verir
     public abstract bool ResolveOnce();
 
-    // --------- ORTAK YARDIMCILAR ---------
+
 
     protected void ClearCells(HashSet<Vector2Int> cells)
     {
-        // 🔹 1) Önce transform'ları topla (SetFalse etmeden!)
+
         var justCleared = new List<Transform>();
 
         foreach (var p in cells)
         {
             if (grid[p.x, p.y] is Cube c)
             {
-                justCleared.Add(c.transform);   // FX için sakla
+                justCleared.Add(c.transform);
             }
         }
 
-        // 🔹 2) Sonra gerçekten temizle
         foreach (var p in cells)
         {
             if (grid[p.x, p.y] is Cube c)
             {
-                c.SetFalse();                    // burada inactive olursa transform’u hâlâ bizde
+                c.SetFalse();
                 grid[p.x, p.y] = null;
                 ApplyDamageToNeighbours(p.x, p.y);
             }
         }
 
-        // 🔹 3) FX — SetFalse’tan SONRA da güvenle çalışır, çünkü elimizde referans var
         MatchFX.I?.PulseTiles(justCleared);
-        MatchFX.I?.NudgeBoard(justCleared.Count >= 6 ? 14f : 10f);
+        //MatchFX.I?.NudgeBoard(justCleared.Count >= 6 ? 14f : 10f);
     }
 
 
@@ -114,7 +110,6 @@ public abstract class MatcherBase : IMatcher
                 }
                 else if (grid[x, y] != null)
                 {
-                    // engel varsa onun altından devam
                     writeY = y + 1;
                 }
             }
@@ -133,7 +128,6 @@ public abstract class MatcherBase : IMatcher
                 if (x == gap.x && y == gap.y) continue;
                 if (grid[x, y] != null) continue;
 
-                // 1) Renk ve obje
                 var color = rngColor();
                 var go = getCubeFromPool != null ? getCubeFromPool(color) : null;
                 if (go == null)
@@ -142,12 +136,8 @@ public abstract class MatcherBase : IMatcher
                     continue;
                 }
 
-                // 2) Parent ve ölçek güvenliği
-                // (cubesParent kullanıyorsan: go.transform.SetParent(cubesParent, false);)
-                // Eğer özel parent'ın yoksa worldPositionStays=false ile mevcut parent'ı koru
                 go.transform.SetParent(go.transform.parent, false);
 
-                // Prefab'ın varsayılan ölçeği (Cube.DefaultScale tanımlıysa onu kullan)
                 Vector3 defaultScale = (Cube.DefaultScale == Vector3.zero) ? Vector3.one : Cube.DefaultScale;
                 go.transform.localScale = defaultScale;
 
@@ -162,17 +152,13 @@ public abstract class MatcherBase : IMatcher
 
                 float z = -y - 2f;
 
-                // 3) Düşüş (varsa) / Doğrudan yerleştirme
                 var fall = cube.GetFall();
                 if (fall != null)
                 {
-                    // Yukarıdan başlat → düşür
                     var start = new Vector3(widthPos[x], 700f, z);
                     cube.SetProperties(start, color, x, y);
                     grid[x, y] = cube;
                     
-
-                    // Spawn pop (ölçeği önce biraz küçült, sonra eski haline)
                     go.transform.localScale = defaultScale * 0.9f;
                     go.transform.DOScale(defaultScale, 0.12f).SetEase(Ease.OutQuad).SetUpdate(true);
                     cube.ResetVisual();
@@ -181,12 +167,10 @@ public abstract class MatcherBase : IMatcher
                 }
                 else
                 {
-                    // Animasyon yoksa doğrudan final pozisyona
                     var pos = new Vector3(widthPos[x], heightPos[y], z);
                     cube.SetProperties(pos, color, x, y);
                     grid[x, y] = cube;
                     
-                    // Spawn pop
                     go.transform.localScale = defaultScale * 0.9f;
                     go.transform.DOScale(defaultScale, 0.12f).SetEase(Ease.OutQuad).SetUpdate(true);
                     cube.ResetVisual();
