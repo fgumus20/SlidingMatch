@@ -4,16 +4,18 @@ using UnityEngine;
 public class SquareMatcher : MatcherBase, IMatcher
 {
     public SquareMatcher(
-        GridObject[,] grid,
-        int gridWidth, int gridHeight,
+        GridObject[,] grid, int gridWidth, int gridHeight,
         float[] widthPositions, float[] heightPositions,
         System.Func<ObjectType> randomColor,
         System.Func<ObjectType, GameObject> cubePoolGetter,
-        System.Func<Vector2Int> gapPosGetter)
-        : base(grid, gridWidth, gridHeight, widthPositions, heightPositions, randomColor, cubePoolGetter, gapPosGetter)
+        System.Func<Vector2Int> gapPosGetter,
+        System.Action onFallStart,
+        System.Action onFallDone)
+        : base(grid, gridWidth, gridHeight, widthPositions, heightPositions,
+               randomColor, cubePoolGetter, gapPosGetter, onFallStart, onFallDone)
     { }
 
-    protected override bool ResolveOnce()
+    public override bool ResolveOnce()
     {
         var toClear = FindSquares2x2();
         if (toClear.Count == 0) return false;
@@ -28,7 +30,6 @@ public class SquareMatcher : MatcherBase, IMatcher
     {
         var res = new HashSet<Vector2Int>();
         for (int x = 0; x < W - 1; x++)
-        {
             for (int y = 0; y < H - 1; y++)
             {
                 var a = grid[x, y] as Cube;
@@ -38,8 +39,7 @@ public class SquareMatcher : MatcherBase, IMatcher
                 if (a == null || b == null || c == null || d == null) continue;
 
                 var color = a.GetType1();
-                if ((int)color > 3) continue; // engel deðil
-
+                if ((int)color > 3) continue;
                 if (b.GetType1() == color && c.GetType1() == color && d.GetType1() == color)
                 {
                     res.Add(new Vector2Int(x, y));
@@ -48,7 +48,6 @@ public class SquareMatcher : MatcherBase, IMatcher
                     res.Add(new Vector2Int(x + 1, y + 1));
                 }
             }
-        }
         return res;
     }
 }

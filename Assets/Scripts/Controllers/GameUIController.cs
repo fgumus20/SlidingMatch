@@ -1,8 +1,9 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class GameUIController : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class GameUIController : MonoBehaviour
     private int moveCount, boxCount, vaseCount, stoneCount;
     public GameObject boxCheck, stoneCheck, vaseCheck;
     public GameObject popup_ui, winUI;
+    public GameObject x2Cubes, lineCubes;
 
     void Awake()
     {
@@ -25,13 +27,15 @@ public class GameUIController : MonoBehaviour
         }
     }
 
-    public void Initialize(int moveCount, int boxCount, int vaseCount, int stoneCount)
+    public void Initialize(int moveCount, int boxCount, int vaseCount, int stoneCount,string pattern)
     {
         movesText = movesTextG.GetComponent<TextMeshPro>();
         boxNumText = boxNumTextG.GetComponent<TextMeshPro>();
         vaseNumText = vaseNumTextG.GetComponent<TextMeshPro>();
         stoneNumText = stoneNumTextG.GetComponent<TextMeshPro>();
+        Debug.Log("[UI] movesText is " + (movesText ? "OK" : "NULL"));
 
+        SetPatternUI(pattern);
         this.moveCount = moveCount;
         movesText.text = moveCount.ToString();
         this.boxCount = boxCount;
@@ -45,19 +49,83 @@ public class GameUIController : MonoBehaviour
 
     public void UpdateTexts(int moveCount, int r_boxNum, int r_vaseNum, int r_stoneNum)
     {
-
         movesText.text = moveCount.ToString();
         boxNumText.text = r_boxNum.ToString();
         vaseNumText.text = r_vaseNum.ToString();
         stoneNumText.text = r_stoneNum.ToString();
+
         checkObstacleState(r_boxNum, r_vaseNum, r_stoneNum);
-        //checkGameState();
+        Debug.Log($"[UI] UpdateTexts moves={moveCount} -> {moveCount}, box={r_boxNum}, vase={r_vaseNum}, stone={r_stoneNum}");
+
+        MatchFX.I?.BumpCounter(movesTextG.GetComponent<RectTransform>());
+
+
+        if (this.moveCount != moveCount)
+        {
+            MatchFX.I?.BumpCounter(movesTextG.GetComponent<RectTransform>());
+            this.moveCount = moveCount;
+        }
+        if (this.boxCount != r_boxNum)
+        {
+            MatchFX.I?.BumpCounter(boxNumTextG.GetComponent<RectTransform>());
+            this.boxCount = r_boxNum;
+        }
+        if (this.vaseCount != r_vaseNum)
+        {
+            MatchFX.I?.BumpCounter(vaseNumTextG.GetComponent<RectTransform>());
+            this.vaseCount = r_vaseNum;
+        }
+        if (this.stoneCount != r_stoneNum)
+        {
+            MatchFX.I?.BumpCounter(stoneNumTextG.GetComponent<RectTransform>());
+            this.stoneCount = r_stoneNum;
+        }
     }
 
-    public void SetMoveCount(int moveCount) { movesText.text = moveCount.ToString(); }
-    public void SetBoxCount(int boxCount) { boxNumText.text = boxCount.ToString(); }
-    public void SetVaseCount(int vaseCount) { vaseNumText.text = vaseCount.ToString(); }
-    public void SetStoneCount(int stoneCount) { stoneNumText.text = stoneCount.ToString(); }
+
+    public void SetMoveCount(int moveCount)
+    {
+        movesText.text = moveCount.ToString();
+        if (this.moveCount != moveCount)
+        {
+            MatchFX.I?.BumpCounter(movesTextG.GetComponent<RectTransform>());
+            this.moveCount = moveCount;
+        }
+    }
+
+    public void SetBoxCount(int boxCount)
+    {
+        boxNumText.text = boxCount.ToString();
+        if (this.boxCount != boxCount)
+        {
+            MatchFX.I?.BumpCounter(boxNumTextG.GetComponent<RectTransform>());
+            this.boxCount = boxCount;
+        }
+        checkObstacleState(this.boxCount, this.vaseCount, this.stoneCount);
+    }
+
+    public void SetVaseCount(int vaseCount)
+    {
+        vaseNumText.text = vaseCount.ToString();
+        if (this.vaseCount != vaseCount)
+        {
+            MatchFX.I?.BumpCounter(vaseNumTextG.GetComponent<RectTransform>());
+            this.vaseCount = vaseCount;
+        }
+        checkObstacleState(this.boxCount, this.vaseCount, this.stoneCount);
+    }
+
+    public void SetStoneCount(int stoneCount)
+    {
+        stoneNumText.text = stoneCount.ToString();
+        if (this.stoneCount != stoneCount)
+        {
+            MatchFX.I?.BumpCounter(stoneNumTextG.GetComponent<RectTransform>());
+            this.stoneCount = stoneCount;
+        }
+        checkObstacleState(this.boxCount, this.vaseCount, this.stoneCount);
+    }
+
     public void checkObstacleState(int boxNum, int vaseNum, int stoneNum)
     {
         if (boxNum == 0)
@@ -94,5 +162,20 @@ public class GameUIController : MonoBehaviour
         yield return new WaitForSeconds(5);
         winUI.SetActive(false);
         SceneManager.LoadScene(0);
+    }
+
+    private void SetPatternUI(string pattern)
+    {
+        Debug.Log(pattern);
+        if(pattern.Equals("square"))
+        {
+            x2Cubes.SetActive(true);
+            lineCubes.SetActive(false);
+        }
+        else
+        {
+            x2Cubes.SetActive(false);
+            lineCubes.SetActive(true);
+        }
     }
 }

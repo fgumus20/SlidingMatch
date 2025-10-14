@@ -1,3 +1,5 @@
+ï»¿using DG.Tweening;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,26 +10,28 @@ public abstract class MatcherBase : IMatcher
     protected readonly float[] widthPos;
     protected readonly float[] heightPos;
 
-    protected readonly System.Func<ObjectType> rngColor;
-    protected readonly System.Func<ObjectType, GameObject> getCubeFromPool;
-    protected readonly System.Func<Vector2Int> getGapPos;
+    protected readonly Func<ObjectType> rngColor;
+    protected readonly Func<ObjectType, GameObject> getCubeFromPool;
+    protected readonly Func<Vector2Int> getGapPos;
+
+    protected readonly Action onFallStart;
+    protected readonly Action onFallDone;
 
     protected MatcherBase(
         GridObject[,] grid,
         int gridWidth, int gridHeight,
         float[] widthPositions, float[] heightPositions,
-        System.Func<ObjectType> randomColor,
-        System.Func<ObjectType, GameObject> cubePoolGetter,
-        System.Func<Vector2Int> gapPosGetter)
+        Func<ObjectType> randomColor,
+        Func<ObjectType, GameObject> cubePoolGetter,
+        Func<Vector2Int> gapPosGetter,
+        Action onFallStart,
+        Action onFallDone)
     {
         this.grid = grid;
-        W = gridWidth;
-        H = gridHeight;
-        widthPos = widthPositions;
-        heightPos = heightPositions;
-        rngColor = randomColor;
-        getCubeFromPool = cubePoolGetter;
-        getGapPos = gapPosGetter;
+        W = gridWidth; H = gridHeight;
+        widthPos = widthPositions; heightPos = heightPositions;
+        rngColor = randomColor; getCubeFromPool = cubePoolGetter; getGapPos = gapPosGetter;
+        this.onFallStart = onFallStart; this.onFallDone = onFallDone;
     }
 
     public void ResolveCascade(int maxLoops = 20)
@@ -39,12 +43,23 @@ public abstract class MatcherBase : IMatcher
         }
     }
 
-    // Her alt sýnýf kendi eþleþmesini bulup temizlemeyi çaðýracak
-    protected abstract bool ResolveOnce();
+    public abstract bool ResolveOnce();
 
-    // --- Ortak yardýmcýlar ---
+
+
     protected void ClearCells(HashSet<Vector2Int> cells)
     {
+
+        var justCleared = new List<Transform>();
+
+        foreach (var p in cells)
+        {
+            if (grid[p.x, p.y] is Cube c)
+            {
+                justCleared.Add(c.transform);
+            }
+        }
+
         foreach (var p in cells)
         {
             if (grid[p.x, p.y] is Cube c)
@@ -54,7 +69,11 @@ public abstract class MatcherBase : IMatcher
                 ApplyDamageToNeighbours(p.x, p.y);
             }
         }
+
+        MatchFX.I?.PulseTiles(justCleared);
+        //MatchFX.I?.NudgeBoard(justCleared.Count >= 6 ? 14f : 10f);
     }
+
 
     protected void CollapseColumns()
     {
@@ -74,42 +93,93 @@ public abstract class MatcherBase : IMatcher
                         grid[x, targetY] = c;
                         grid[x, y] = null;
                         c.SetXandY(x, targetY);
-                        c.GetFall().StartFallingToHeight(heightPos[targetY]);
+
+                        var fall = c.GetFall();
+                        if (fall != null)
+                        {
+                            onFallStart?.Invoke();
+                            fall.StartFallingToHeight(heightPos[targetY], onFallDone);
+                        }
+                        else
+                        {
+                            var lp = c.transform.localPosition;
+                            c.transform.localPosition = new Vector3(lp.x, heightPos[targetY], lp.z);
+                        }
                     }
                     writeY = targetY + 1;
                 }
                 else if (grid[x, y] != null)
                 {
-                    // Engel gördüysen yazmayý onun ALTINA al
                     writeY = y + 1;
                 }
             }
-            if (x == gap.x) grid[gap.x, gap.y] = null; // güvence
+            if (x == gap.x) grid[gap.x, gap.y] = null;
         }
     }
 
     protected void RefillExceptGap()
     {
         var gap = getGapPos();
+
         for (int x = 0; x < W; x++)
         {
             for (int y = 0; y < H; y++)
             {
                 if (x == gap.x && y == gap.y) continue;
-                if (grid[x, y] == null)
+                if (grid[x, y] != null) continue;
+
+                var color = rngColor();
+                var go = getCubeFromPool != null ? getCubeFromPool(color) : null;
+                if (go == null)
                 {
-                    var color = rngColor();
-                    var go = getCubeFromPool(color);
-                    go.SetActive(true);
-                    var cube = go.GetComponent<Cube>();
-                    var start = new Vector3(widthPos[x], 700f, -H - 2);
+                    Debug.LogWarning("[Refill] Pool'dan obje alÄ±namadÄ±, hÃ¼cre atlandÄ±.");
+                    continue;
+                }
+
+                go.transform.SetParent(go.transform.parent, false);
+
+                Vector3 defaultScale = (Cube.DefaultScale == Vector3.zero) ? Vector3.one : Cube.DefaultScale;
+                go.transform.localScale = defaultScale;
+
+                go.SetActive(true);
+
+                var cube = go.GetComponent<Cube>();
+                if (cube == null)
+                {
+                    Debug.LogError("[Refill] GameObject'te Cube component yok!");
+                    continue;
+                }
+
+                float z = -y - 2f;
+
+                var fall = cube.GetFall();
+                if (fall != null)
+                {
+                    var start = new Vector3(widthPos[x], 700f, z);
                     cube.SetProperties(start, color, x, y);
                     grid[x, y] = cube;
-                    cube.GetFall().StartFallingToHeight(heightPos[y]);
+                    
+                    go.transform.localScale = defaultScale * 0.9f;
+                    go.transform.DOScale(defaultScale, 0.12f).SetEase(Ease.OutQuad).SetUpdate(true);
+                    cube.ResetVisual();
+                    onFallStart?.Invoke();
+                    fall.StartFallingToHeight(heightPos[y], onFallDone);
+                }
+                else
+                {
+                    var pos = new Vector3(widthPos[x], heightPos[y], z);
+                    cube.SetProperties(pos, color, x, y);
+                    grid[x, y] = cube;
+                    
+                    go.transform.localScale = defaultScale * 0.9f;
+                    go.transform.DOScale(defaultScale, 0.12f).SetEase(Ease.OutQuad).SetUpdate(true);
+                    cube.ResetVisual();
+
                 }
             }
         }
     }
+
 
     protected void ApplyDamageToNeighbours(int x, int y)
     {

@@ -5,7 +5,7 @@ using UnityEngine;
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager instance;
-    private string levelDataPath = "Assets/CaseStudyAssetsNoArea/Levels/level_0{0}.json";
+    private string levelDataPath = "Assets/Arts/Levels/level_0{0}.json";
     private int currentLevel = 1;
 
     void Awake()
@@ -31,7 +31,7 @@ public class LevelManager : MonoBehaviour
         string filePath = string.Format(levelDataPath, currentLevel % 10);
         if (currentLevel == 10 || currentLevel == 0)
         {
-            filePath = "Assets/CaseStudyAssetsNoArea/Levels/level_10.json";
+            filePath = "Assets/Arts/Levels/level_10.json";
         }
         if (!File.Exists(filePath))
         {

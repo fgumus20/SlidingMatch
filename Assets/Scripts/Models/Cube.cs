@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,22 +10,36 @@ public class Cube : MonoBehaviour, GridObject
     public SpriteRenderer spriteRenderer;
     public List<GridObject> neighbourList;
     public List<GridObject> obstacles;
+    public const float BASE_SCALE = 52f;
     ObjectType type;
     int x, y;
     public ParticleSystem explosionEffect;
+    public static Vector3 DefaultScale = Vector3.zero;
 
     public void SetProperties(Vector3 vector, ObjectType type, int x, int y)
     {
         neighbourList = new List<GridObject>();
         obstacles = new List<GridObject>();
+        ResetVisual();
         SetType(type);
         SetPosition(vector);
         SetXandY(x, y);
     }
 
+    public void ResetVisual()
+    {
+        transform.DOKill(true);
+        if (cubePosition) cubePosition.DOKill(true);
+
+        transform.localScale = Vector3.one * BASE_SCALE;
+        transform.localRotation = Quaternion.identity;
+
+
+    }
+
     public void SetPosition(Vector3 vector)
     {
-        cubePosition.localPosition = vector;
+        transform.localPosition = vector;
     }
 
     public void SetSprite(Sprite sprite)

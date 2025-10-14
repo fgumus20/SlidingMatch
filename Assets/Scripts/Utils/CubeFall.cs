@@ -1,29 +1,47 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
 public class CubeFall : MonoBehaviour
 {
-    private float fallSpeed;
     public float height;
+
+    public bool IsFalling { get; private set; }
+    public event Action OnFallCompletedEvent;
+    Coroutine running;
+
+    public void StartFallingToHeight(float targetHeight, Action onComplete = null, float speed = 800f)
+    {
+        height = targetHeight;
+
+        if (running != null) StopCoroutine(running);
+
+        running = StartCoroutine(FallingRoutine(onComplete, speed));
+    }
 
     public void StartFallingToHeight(float targetHeight)
     {
-        height = targetHeight;
-        StartCoroutine(FallingRoutine());
+        StartFallingToHeight(targetHeight, null, 800f);
     }
-    private IEnumerator FallingRoutine()
+
+    private IEnumerator FallingRoutine(Action onComplete, float fallSpeed)
     {
-        fallSpeed = 800f;
+        IsFalling = true;
 
         while (transform.localPosition.y > height)
         {
-            transform.localPosition = new Vector3(
-                transform.localPosition.x,
-                Mathf.MoveTowards(transform.localPosition.y, height, fallSpeed * Time.deltaTime),
-                transform.localPosition.z
-            );
+            var lp = transform.localPosition;
+            float ny = Mathf.MoveTowards(lp.y, height, fallSpeed * Time.deltaTime);
+            transform.localPosition = new Vector3(lp.x, ny, lp.z);
             yield return null;
         }
-        transform.localPosition = new Vector3(transform.localPosition.x, height, transform.localPosition.z);
+        var lp2 = transform.localPosition;
+        transform.localPosition = new Vector3(lp2.x, height, lp2.z);
+
+        IsFalling = false;
+        running = null;
+
+        onComplete?.Invoke();
+        OnFallCompletedEvent?.Invoke();
     }
 }
