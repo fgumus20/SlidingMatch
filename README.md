@@ -4,9 +4,9 @@ Original puzzle game combining sliding-tile mechanics with Match gameplay.
 
 ## Screenshots
 
-![Level Start](Assets/Arts/Screenshots/level1.png)
-![Gameplay](Assets/Arts/Screenshots/gameplay.png)
-![Win Screen](Assets/Arts/Screenshots/win.png)
+![Level Start](Assets/Arts/Screenshots/mainMenu.png)
+![Gameplay](Assets/Arts/Screenshots/gameView.png)
+![Win Screen](Assets/Arts/Screenshots/winScreen.png)
 
 ## Features
 
