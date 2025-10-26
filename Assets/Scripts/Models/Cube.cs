@@ -42,6 +42,18 @@ public class Cube : MonoBehaviour, GridObject
         transform.localPosition = vector;
     }
 
+    public void MoveToLocal(Vector3 vector, float duration, System.Action onComplete)
+    {
+        transform.DOKill(true);
+        transform.DOLocalMove(vector, duration)
+            .SetEase(Ease.OutQuad)
+            .OnComplete(() =>
+            {
+                transform.localPosition = vector;
+                onComplete?.Invoke();
+            });
+    }
+
     public void SetSprite(Sprite sprite)
     {
         spriteRenderer.sprite = sprite;

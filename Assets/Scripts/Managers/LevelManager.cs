@@ -5,44 +5,67 @@ using UnityEngine;
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager instance;
-    private string levelDataPath = "Assets/Arts/Levels/level_0{0}.json";
+
+    [SerializeField] private string levelDataPath = "Assets/Arts/Levels/level_{0:00}.json";
+    [SerializeField] private int maxLevel = 10;
+
+    private const string CurrentLevelKey = "CurrentLevel";
+
     private int currentLevel = 1;
+    private int storedLevel = 1;
 
     void Awake()
     {
         if (instance == null)
         {
             instance = this;
-            //DontDestroyOnLoad(gameObject);
+            storedLevel = PlayerPrefs.GetInt(CurrentLevelKey, 1);
+            currentLevel = Mathf.Clamp(storedLevel, 1, maxLevel);
         }
         else
         {
             Destroy(gameObject);
         }
     }
+
     public static LevelManager GetLevelManager() { return instance; }
-    public int GetCurrentLevel() {return  PlayerPrefs.GetInt("CurrentLevel", 1); }
-    public void SetCurrentLevel(int level) { currentLevel = level; }
-    //public string GetPattern() { return currentPattern; }
+
+    public int MaxLevel => maxLevel;
+
+    public int GetCurrentLevel()
+    {
+        return currentLevel;
+    }
+
+    public int GetStoredLevel()
+    {
+        return storedLevel;
+    }
+
+    public bool HasCompletedAllLevels()
+    {
+        return storedLevel > maxLevel;
+    }
+
+    public void SetCurrentLevel(int level)
+    {
+        storedLevel = level;
+        currentLevel = Mathf.Clamp(level, 1, maxLevel);
+    }
 
     public Level LoadLevel(int levelnum)
     {
-        currentLevel = PlayerPrefs.GetInt("CurrentLevel", 1);
-        string filePath = string.Format(levelDataPath, currentLevel % 10);
-        if (currentLevel == 10 || currentLevel == 0)
-        {
-            filePath = "Assets/Arts/Levels/level_10.json";
-        }
+        currentLevel = Mathf.Clamp(levelnum, 1, maxLevel);
+        string filePath = string.Format(levelDataPath, currentLevel);
         if (!File.Exists(filePath))
         {
             Debug.LogError("Level file not found at: " + filePath);
-
+            return null;
         }
 
         string jsonContent = File.ReadAllText(filePath);
         LevelData data = JsonUtility.FromJson<LevelData>(jsonContent);
 
-       
         return new Level(
             data.level_number,
             data.grid_width,
@@ -52,9 +75,10 @@ public class LevelManager : MonoBehaviour
             new List<string>(data.grid)
         );
     }
+
     public void SaveLevelProgress()
     {
-        PlayerPrefs.SetInt("CurrentLevel", currentLevel);
+        PlayerPrefs.SetInt(CurrentLevelKey, storedLevel);
         PlayerPrefs.Save();
     }
 

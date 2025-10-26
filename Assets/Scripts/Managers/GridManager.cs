@@ -20,6 +20,8 @@ public class GridManager : MonoBehaviour
 
     public Vector2Int gapPos;
     private bool isResolving;
+    private bool isSliding;
+    [SerializeField] private float slideDuration = 0.18f;
 
     void Awake()
     {
@@ -268,25 +270,33 @@ public class GridManager : MonoBehaviour
 
     public void SlideIntoGap(Vector2Int from)
     {
+        if (isSliding)
+        {
+            return;
+        }
 
         var cube = gridArray[from.x, from.y] as Cube;
         if (cube == null) return;
         if (!IsAdjacentToGap(from)) return;
 
-        gridArray[gapPos.x, gapPos.y] = cube;
-        cube.SetXandY(gapPos.x, gapPos.y);
+        Vector2Int targetGap = gapPos;
+        Vector2Int newGap = from;
 
-        var targetLocal = GridToLocal(gapPos);
+        gridArray[targetGap.x, targetGap.y] = cube;
+        gridArray[newGap.x, newGap.y] = null;
+        cube.SetXandY(targetGap.x, targetGap.y);
 
-        cube.transform.localPosition = targetLocal;
+        var targetLocal = GridToLocal(targetGap);
 
-        gridArray[from.x, from.y] = null;
-        gapPos = from;
+        isSliding = true;
 
-        GameManager.instance.DecreaseMoveCount();
-
-        TryResolveStep();
-
+        cube.MoveToLocal(targetLocal, slideDuration, () =>
+        {
+            gapPos = newGap;
+            isSliding = false;
+            GameManager.instance.DecreaseMoveCount();
+            TryResolveStep();
+        });
     }
     private bool AnyFalling()
     {
