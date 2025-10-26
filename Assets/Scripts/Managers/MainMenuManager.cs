@@ -8,6 +8,10 @@ public class MainMenuManager : MonoBehaviour
 {
     public static MainMenuManager instance;
     public GameObject buttonText;
+
+    public GameObject levelsPanel;
+    public GameObject levelButtonPrefab;
+    public Transform levelsContainer;
     void Awake()
     {
         if (instance == null)
@@ -39,4 +43,16 @@ public class MainMenuManager : MonoBehaviour
     {
         SceneManager.LoadScene(i);
     }
+
+
+    public void OpenLevelsPanel()
+    {
+        levelsPanel.SetActive(true);
+    }
+
+    public void CloseLevelsPanel()
+    {
+        levelsPanel.SetActive(false);
+    }
+
 }
