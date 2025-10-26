@@ -17,7 +17,7 @@ public class GridManager : MonoBehaviour
     private IMatcher matcher;
 
     int gridWidth, gridHeight;
-
+    [SerializeField] private float slideDuration = 0.18f;
     public Vector2Int gapPos;
     private bool isResolving;
 
@@ -278,7 +278,8 @@ public class GridManager : MonoBehaviour
 
         var targetLocal = GridToLocal(gapPos);
 
-        cube.transform.localPosition = targetLocal;
+        cube.MoveToLocal(targetLocal, slideDuration);
+        //cube.transform.localPosition = targetLocal;
 
         gridArray[from.x, from.y] = null;
         gapPos = from;

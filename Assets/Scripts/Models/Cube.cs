@@ -121,6 +121,15 @@ public class Cube : MonoBehaviour, GridObject
             GridManager.instance.SlideIntoGap(pos);
         }
     }
-
+    public void MoveToLocal(Vector3 vector, float duration)
+    {
+        transform.DOKill(true);
+        transform.DOLocalMove(vector, duration)
+            .SetEase(Ease.OutQuad)
+            .OnComplete(() =>
+            {
+                transform.localPosition = vector;
+            });
+    }
 
 }
