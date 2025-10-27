@@ -84,7 +84,7 @@ public class MainMenuManager : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        for (int i = 1; i <= 10; i++)
+        for (int i = 1; i <= 5; i++)
         {
             GameObject btn = Instantiate(levelButtonPrefab, levelsContainer);
             btn.GetComponentInChildren<TextMeshProUGUI>().text = i.ToString();
