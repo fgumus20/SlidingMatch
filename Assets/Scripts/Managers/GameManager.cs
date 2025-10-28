@@ -10,8 +10,6 @@ public class GameManager : MonoBehaviour
     public GameObject popup_ui;
     public static bool isGameActive = true;
 
-
-
     void Awake()
     {
         if (instance == null)
@@ -67,7 +65,6 @@ public class GameManager : MonoBehaviour
         this.moveCount--;
         GameUIController.instance.SetMoveCount(this.moveCount);
         GameUIController.instance.checkObstacleState(boxCount, GetVaseCount(), GetStoneCount());
-        Debug.Log("aaa");
         CheckGameState();
 
     }
@@ -86,13 +83,8 @@ public class GameManager : MonoBehaviour
             GameManager.instance.SetStoneCount(GameManager.instance.GetStoneCount() - 1);
         }
 
-        Debug.Log ("box =  " +this.GetBoxCount());
-        Debug.Log("vase =  " + this.GetVaseCount());
-        Debug.Log("stone =  " + this.GetStoneCount());
     }
-    public void LoadMainMenu(){SceneManager.LoadScene(0);
-        Debug.Log("aaa");
-    }
+    public void LoadMainMenu(){SceneManager.LoadScene(0);}
     public void CheckGameState ()
     {
         if (GetMoveCount() == 0 && (GetBoxCount() != 0 || GetStoneCount() != 0 || GetVaseCount() != 0))
