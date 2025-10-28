@@ -189,6 +189,7 @@ public class GameUIController : MonoBehaviour
 
     private IEnumerator WinUISequence()
     {
+        GameManager.isGameActive = false;
         winUI.SetActive(true);
         yield return new WaitForSeconds(5);
         winUI.SetActive(false);
