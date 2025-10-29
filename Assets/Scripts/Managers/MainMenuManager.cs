@@ -16,6 +16,7 @@ public class MainMenuManager : MonoBehaviour
     public Transform levelsContainer;
     public GameObject playButton;
     public GameObject levelsButton;
+    public GameObject title;
     void Awake()
     {
         if (instance == null)
@@ -51,6 +52,7 @@ public class MainMenuManager : MonoBehaviour
     public void OpenLevelsPanel()
     {
         levelsPanel.SetActive(true);
+        title.SetActive(false);
         playButton.SetActive(false);
         levelsButton.SetActive(false);
         PopulateLevelButtons();
@@ -65,6 +67,7 @@ public class MainMenuManager : MonoBehaviour
         rect.DOScale(0.8f, 0.2f).SetEase(Ease.InBack).OnComplete(() => { 
 
             levelsPanel.SetActive(false);
+            title.SetActive(true);
             playButton.SetActive(true);
             levelsButton.SetActive(true);
         }); 
