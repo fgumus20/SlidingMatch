@@ -1,0 +1,19 @@
+{
+  "level_number": 6,
+  "grid_width": 9,
+  "grid_height": 10,
+  "move_count": 60,
+  "pattern": "line",
+  "grid": [
+    "rand","rand","rand","rand","rand","rand","rand","rand","rand",
+    "b","g","em","bo","b","bo","r","g","b",
+    "g","r","y","b","v","b","y","r","g",
+    "r","b","g","v","bo","v","g","b","r",
+    "y","b","g","b","bo","b","g","b","y",
+    "b","r","y","v","b","v","y","r","b",
+    "g","r","bo","b","y","b","bo","r","g",
+    "r","b","g","y","r","y","g","b","r",
+    "y","b","g","r","y","r","g","b","y",
+    "b","g","r","bo","b","bo","r","g","b"
+  ]
+}

@@ -115,6 +115,9 @@ public class Cube : MonoBehaviour, GridObject
     }
     void OnMouseDown()
     {
+        if (!GameManager.isGameActive)
+            return;
+
         Vector2Int pos = new Vector2Int(GetX(), GetY());
         if (GridManager.instance != null && GridManager.instance.IsAdjacentToGap(pos))
         {

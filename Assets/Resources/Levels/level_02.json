@@ -1,0 +1,21 @@
+{
+  "level_number": 2,
+  "grid_width": 9,
+  "grid_height": 10,
+  "move_count": 60,
+  "pattern": "line",
+  "grid": [
+    "b","g","r","y","b","g","r","y","b",
+    "g","r","y","bo","g","r","y","b","g",
+
+    "r","bo","b","g","y","b","r","bo","y",
+    "y","g","r","y","b","g","r","y","b",
+    "b","r","em","g","r","y","bo","g","r",
+
+    "g","y","b","g","bo","r","y","b","g",
+    "r","g","y","b","g","r","y","bo","r",
+    "y","b","g","r","y","b","g","r","y",
+    "b","g","r","bo","b","g","r","y","b",
+    "g","r","y","b","g","r","y","b","g"
+  ]
+}

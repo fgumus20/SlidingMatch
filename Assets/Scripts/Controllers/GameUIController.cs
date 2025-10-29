@@ -27,6 +27,7 @@ public class GameUIController : MonoBehaviour
         }
     }
 
+
     public void Initialize(int moveCount, int boxCount, int vaseCount, int stoneCount,string pattern)
     {
         movesText = movesTextG.GetComponent<TextMeshPro>();
@@ -45,6 +46,8 @@ public class GameUIController : MonoBehaviour
         this.vaseCount = vaseCount;
         vaseNumText.text = vaseCount.ToString();
         checkObstacleState(boxCount, stoneCount, vaseCount);
+        FadeInScreen();
+        AnimateTopUI();
     }
 
     public void UpdateTexts(int moveCount, int r_boxNum, int r_vaseNum, int r_stoneNum)
@@ -83,6 +86,34 @@ public class GameUIController : MonoBehaviour
     }
 
 
+    private void AnimateTopUI()
+    {
+        RectTransform panel = transform.GetComponent<RectTransform>();
+
+
+        Vector2 startPos = panel.anchoredPosition + new Vector2(0, 200f);
+        panel.anchoredPosition = startPos;
+
+        panel.DOAnchorPosY(panel.anchoredPosition.y - 200f, 0.7f)
+            .SetEase(Ease.OutBounce)
+            .SetDelay(0.2f);
+    }
+    public void FadeInScreen(float duration = 2.4f)
+    {
+        GameObject fade = new GameObject("FadeIn");
+        var canvas = fade.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        var img = fade.AddComponent<UnityEngine.UI.Image>();
+        img.color = Color.black;
+
+        RectTransform rect = img.GetComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        img.DOFade(0f, duration).OnComplete(() => GameObject.Destroy(fade));
+    }
     public void SetMoveCount(int moveCount)
     {
         movesText.text = moveCount.ToString();
@@ -158,6 +189,7 @@ public class GameUIController : MonoBehaviour
 
     private IEnumerator WinUISequence()
     {
+        GameManager.isGameActive = false;
         winUI.SetActive(true);
         yield return new WaitForSeconds(5);
         winUI.SetActive(false);

@@ -17,6 +17,8 @@ public class LineMatcher : MatcherBase, IMatcher
 
     public override bool ResolveOnce()
     {
+        if (!GameManager.isGameActive)
+            return false;
         var toClear = FindLineMatches3Plus();
         if (toClear.Count == 0) return false;
 
